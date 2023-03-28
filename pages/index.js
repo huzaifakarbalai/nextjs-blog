@@ -23,7 +23,7 @@ export default function Home({allPostsData}) {
       <section className={utilStyles.headingMd}>
         <p>Experienced Data Scientist and Flutter Developer who strives to revolutionize the businesses with power of AI to develop state of 
 the art applications. Proven track record in delivering high-impact solutions through hypothesis-driven analysis and software 
-development. I am eager to leverage that approach at your company</p>
+development. I am eager to leverage that approach at Sadiq</p>
         <p>
           (This is a sample website - you’ll be building a site like this on{' '}
           <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
