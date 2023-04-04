@@ -6,7 +6,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.11",
+    "@mui/material": "^5.11.15",
     "date-fns": "^2.29.3",
+    "firebase": "^9.19.1",
     "gray-matter": "^4.0.3",
     "next": "latest",
     "react": "18.2.0",
