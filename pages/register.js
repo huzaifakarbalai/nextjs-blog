@@ -13,9 +13,19 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase'
-import { useRouter } from 'next/router'
+import { auth, db } from '../lib/firebase';
+import { doc, setDoc } from "firebase/firestore"; 
+import { useRouter } from 'next/router';
 
+function createUserDocument(uid, firstName, lastName, email, university) {
+  // Create a new user document with the user's data
+  return setDoc(doc(db, 'users', uid), {
+    firstName: firstName,
+    lastName: lastName,
+    email: email,
+    university: university
+  });
+}
 
 function Copyright(props) {
   return (
@@ -33,27 +43,30 @@ function Copyright(props) {
 const theme = createTheme();
 
 export default function SignUp() {
-
   const router = useRouter();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const email = data.get('email')
-    const password = data.get('password')
-    
-    createUserWithEmailAndPassword(auth,email,password)
-      .then((userCredential) => {
-        router.push('/login')
-        console.log(userCredential)
-      }).catch((error)=> {
-        console.log(error)
-      })
-    // console.log({
-    //   email: data.get('email'),
-    //   password: data.get('password'),
-    // });
+    const firstName = data.get('firstName');
+    const lastName = data.get('lastName');
+    const email = data.get('email');
+    const university = data.get('university');
+    const password = data.get('password');
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Get the user ID from the userCredential object
+      const uid = userCredential.user.uid;
+      // Create a new user document with the user's data and the uid as the document ID
+      await createUserDocument(uid, firstName, lastName, email, university);
+      router.push('/login');
+      console.log(userCredential);
+    } catch (error) {
+      console.log(error);
+    }
   };
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -104,6 +117,16 @@ export default function SignUp() {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="university"
+                  label="University Name"
+                  name="university"
+                  autoComplete="university name"
                 />
               </Grid>
               <Grid item xs={12}>

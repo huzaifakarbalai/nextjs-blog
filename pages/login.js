@@ -45,7 +45,7 @@ export default function SignIn() {
 
     signInWithEmailAndPassword(auth,email,password)
       .then((userCredential) => {
-        router.push('/')
+        router.push('/dashboard')
         console.log(userCredential)
       }).catch((error) => {
         console.log(error)

@@ -64,7 +64,7 @@ export default function Home() {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" style={{ flexGrow: 1 }}>
-            Self Study App
+            Self Study
           </Typography>
           <Link href="/login">
             <Button style={{ color: "white" }}>Login</Button>
