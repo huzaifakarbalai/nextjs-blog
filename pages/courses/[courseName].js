@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { db, storage } from '../../lib/firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject} from "firebase/storage";
 import { doc, getDoc, addDoc, collection, updateDoc, arrayUnion, deleteDoc, arrayRemove} from 'firebase/firestore';
 import { IconButton, Table, TableHead, TableBody, TableCell, TableRow, TableContainer,Grid,Tab, Tabs, Box, Typography, Drawer, List, ListItem, ListItemIcon, ListItemButton, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, TextareaAutosize, Button, Paper } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -9,6 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import UploadIcon from '@mui/icons-material/Upload';
+import Link from 'next/link';
 
 function Course() {
   const router = useRouter();
@@ -35,6 +36,12 @@ function Course() {
   const [file, setFile] = useState("");
   const [percent, setPercent] = useState(0);
   const [resources, setResources] = useState([]);
+  const [editedResource, setEditedResource] = useState({});
+  const [resourceDeleteOpen, setResourceDeleteOpen] = useState(false);
+  const [reminderFrequency, setReminderFrequency] = useState(0);
+  const [reminderLeadTime, setReminderLeadTime] = useState("");
+  const [reminderLeadTime1, setReminderLeadTime1] = useState("");
+  const [reminderLeadTime2, setReminderLeadTime2] = useState("");
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
@@ -42,11 +49,27 @@ function Course() {
 
   const addAssignment = async () => {
     try {
-      const assignmentRef = await addDoc(collection(db, 'assignments'), {
-        assignmentName: assignmentName,
-        deadline: deadline,
-        status: status
-      });
+      var assignmentRef;
+      if(reminderFrequency == 2) {
+        assignmentRef = await addDoc(collection(db, 'assignments'), {
+          assignmentName: assignmentName,
+          deadline: deadline,
+          status: status,
+          reminderFrequency: reminderFrequency,
+          reminderLeadTime1: reminderLeadTime1,
+          reminderLeadTime2: reminderLeadTime2
+        });
+      }
+      else {
+        assignmentRef = await addDoc(collection(db, 'assignments'), {
+          assignmentName: assignmentName,
+          deadline: deadline,
+          status: status,
+          reminderFrequency: reminderFrequency,
+          reminderLeadTime: reminderLeadTime
+        });
+      }
+      
 
       // Get the assignment ID
       const assignmentId = assignmentRef.id;
@@ -61,6 +84,10 @@ function Course() {
       setAssignmentName('');
       setDeadline('');
       setStatus(''); 
+      setReminderFrequency('')
+      setReminderLeadTime('')
+      setReminderLeadTime1('')
+      setReminderLeadTime2('')
 
       fetchAssignments();
       setOpen(false);
@@ -88,13 +115,27 @@ function Course() {
 
   const updateAssignment = async () => {
     try {
-      const assignmentRef = doc(db, 'assignments', editedAssignment.assignmentId);
-      await updateDoc(assignmentRef, {
-        assignmentName: editedAssignment.assignmentName,
-        deadline: editedAssignment.deadline,
-        status: editedAssignment.status
-      });
-  
+      var assignmentRef = doc(db, 'assignments', editedAssignment.assignmentId);
+      if(editedAssignment.reminderFrequency == 2) {
+        await updateDoc(assignmentRef, {
+          assignmentName: editedAssignment.assignmentName,
+          deadline: editedAssignment.deadline,
+          status: editedAssignment.status,
+          reminderFrequency: editedAssignment.reminderFrequency,
+          reminderLeadTime1: editedAssignment.reminderLeadTime1,
+          reminderLeadTime2: editedAssignment.reminderLeadTime2
+        });
+    
+      } else {
+        await updateDoc(assignmentRef, {
+          assignmentName: editedAssignment.assignmentName,
+          deadline: editedAssignment.deadline,
+          status: editedAssignment.status,
+          reminderFrequency: editedAssignment.reminderFrequency,
+          reminderLeadTime: editedAssignment.reminderLeadTime
+        });
+      }
+     
       fetchAssignments();
       setEditingOpen(false);
     } catch (error) {
@@ -116,12 +157,29 @@ function Course() {
           const assignmentDocSnapshot = await getDoc(assignmentDocRef);
           if (assignmentDocSnapshot.exists()) {
             const assignmentData = assignmentDocSnapshot.data();
-            const assignment = {
-              assignmentId: assignmentId,
-              assignmentName: assignmentData.assignmentName,
-              deadline: assignmentData.deadline,
-              status: assignmentData.status
-            };
+            var assignment;
+            if(assignmentData.reminderFrequency == 2) {
+              assignment = {
+                assignmentId: assignmentId,
+                assignmentName: assignmentData.assignmentName,
+                deadline: assignmentData.deadline,
+                status: assignmentData.status,
+                reminderFrequency: assignmentData.reminderFrequency,
+                reminderLeadTime1: assignmentData.reminderLeadTime1,
+                reminderLeadTime2: assignmentData.reminderLeadTime2
+              };
+            }
+            else {
+              assignment = {
+                assignmentId: assignmentId,
+                assignmentName: assignmentData.assignmentName,
+                deadline: assignmentData.deadline,
+                status: assignmentData.status,
+                reminderFrequency: assignmentData.reminderFrequency,
+                reminderLeadTime: assignmentData.reminderLeadTime,
+              };
+            }
+           
             assignmentsData.push(assignment);
           }
         }
@@ -134,6 +192,51 @@ function Course() {
     }
   };
 
+  const handleReminderFrequencyChange = (e) => {
+    setReminderFrequency(e.target.value);
+  }
+
+  
+  const handleReminderLeadTimeChange = (e) => {
+    setReminderLeadTime(e.target.value);
+  }
+
+  const handleReminderLeadTime1Change = (e) => {
+    setReminderLeadTime1(e.target.value);
+  }
+
+  const handleReminderLeadTime2Change = (e) => {
+    setReminderLeadTime2(e.target.value);
+  }
+
+  const handleEditedReminderFrequencyChange = (e) => {
+    setEditedAssignment({
+      ...editedAssignment,
+      reminderFrequency: e.target.value
+    });
+  }
+
+  
+  const handleEditedReminderLeadTimeChange = (e) => {
+    setEditedAssignment({
+      ...editedAssignment,
+      reminderLeadTime: e.target.value
+    });
+  }
+
+  const handleEditedReminderLeadTime1Change = (e) => {
+    setEditedAssignment({
+      ...editedAssignment,
+      reminderLeadTime1: e.target.value
+    });
+  }
+
+  const handleEditedReminderLeadTime2Change = (e) => {
+    setEditedAssignment({
+      ...editedAssignment,
+      reminderLeadTime2: e.target.value
+    });
+  }
 
   const handleAssignmentNameChange = (e) => {
     setAssignmentName(e.target.value);
@@ -283,6 +386,7 @@ function Course() {
   function handleChange(event) {
     setFile(event.target.files[0]);
   }
+
   const uploadFile = () => {
     if (!file) {
       alert("Please upload an image first!");
@@ -319,14 +423,46 @@ function Course() {
         await updateDoc(coursesDocRef, {
             resources: arrayUnion(resourceId)
         });
+        fetchResources();
       });
       }
       );
+      
       setPercent(0);
+      //setResourceOpen(false);
+      
   };
 
+  const deleteFile = async () => {
+    try {
+      const resourceRef = doc(db, 'resources', editedResource.resourceId);
+      await deleteDoc(resourceRef);
+      const coursesDocRef = doc(db, 'courses', courseName);
+      await updateDoc(coursesDocRef, {
+        resources: arrayRemove(editedResource.resourceId)
+      });
+
+      // Delete the file from Firebase Storage
+      const storageRef = ref(storage, `files/${editedResource.fileName}`);
+      await deleteObject(storageRef);
+
+      fetchResources();
+      setResourceDeleteOpen(false);
+
+
+    
+    } catch(error) {
+      console.error("Error deleting note:", error);
+    }
+  }
+
   const handleUploadClose = (e) => {
+    fetchResources();
     setResourceOpen(false)
+  };
+
+  const handleResourceDeleteClose = (e) => {
+    setResourceDeleteOpen(false);
   };
 
   const fetchResources = async () => {
@@ -421,13 +557,13 @@ function Course() {
               {assignments.map((assignment) => (
                 <TableRow key={assignment.id}>
                   <TableCell>{assignment.assignmentName}</TableCell>
-                  <TableCell>{assignment.deadline}</TableCell>
+                  <TableCell>{new Date(assignment.deadline).toLocaleString().replace('T', ' ')}</TableCell>
                   <TableCell>{assignment.status}</TableCell>
                   <TableCell>                    
-                    <IconButton onClick={() => {setEditedAssignment(assignment); setEditingOpen(true)}}>
+                    <IconButton style={{float: "right"}} onClick={() => {setEditedAssignment(assignment); setEditingOpen(true)}}>
                       <EditIcon />
                     </IconButton>
-                    <IconButton onClick = {() => {setDeleteOpen(true); setEditedAssignment(assignment)}}>
+                    <IconButton style={{float: "right"}} onClick = {() => {setDeleteOpen(true); setEditedAssignment(assignment)}}>
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
@@ -450,18 +586,19 @@ function Course() {
             value={editedAssignment.assignmentName}
             onChange={handleEditedAssignmentNameChange}
             />
+
             <TextField
-            margin="dense"
-            id="deadline"
-            label="Deadline"
-            type="date"
-            defaultValue={new Date()}
-            InputLabelProps={{
+              margin="dense"
+              id="deadline"
+              label="Deadline"
+              type="datetime-local"
+              defaultValue={new Date()}
+              InputLabelProps={{
                 shrink: true,
-            }}
-            fullWidth
-            value={editedAssignment.deadline}
-            onChange={handleEditedDeadlineChange}
+              }}
+              fullWidth
+              value={editedAssignment.deadline}
+              onChange={handleEditedDeadlineChange}
             />
             <TextField
             margin="dense"
@@ -479,6 +616,80 @@ function Course() {
             <option value="Completed">Completed</option>
             
             </TextField>
+
+            <TextField
+              margin="dense"
+              id="reminderFrequency"
+              select
+              fullWidth
+              defaultValue={"1"}
+              value={editedAssignment.reminderFrequency}
+              onChange={handleEditedReminderFrequencyChange}
+              SelectProps={{
+                native: true,
+              }}
+              label="Reminder Frequency"
+            >
+          <option value={"1"}>1</option>
+          <option value={"2"}>2</option>
+            </TextField>
+            {editedAssignment.reminderFrequency == 2 ? (
+              <div>
+                <TextField
+                  margin="dense"
+                  id="reminderLeadTime1"
+                  select
+                  fullWidth
+                  value={editedAssignment.reminderLeadTime1}
+                  onChange={handleEditedReminderLeadTime1Change}
+                  SelectProps={{
+                    native: true,
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                  label="Reminder Lead Time Before Deadline 1"
+                >
+              <option value={"12 hours"}>12 hours</option>
+              <option value={"1 day"}>1 day</option>
+              <option value={"1 week"}>1 week</option>
+                </TextField>
+                <TextField
+                  margin="dense"
+                  id="reminderLeadTime2"
+                  select
+                  fullWidth
+                  value={editedAssignment.reminderLeadTime2}
+                  onChange={handleEditedReminderLeadTime2Change}
+                  SelectProps={{
+                    native: true,
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                  label="Reminder Lead Time Before Deadline 2"
+                >
+              <option value={"12 hours"}>12 hours</option>
+              <option value={"1 day"}>1 day</option>
+              <option value={"1 week"}>1 week</option>
+                </TextField>
+              </div>
+            ) : (
+              <TextField
+              margin="dense"
+              id="reminderLeadTime"
+              select
+              fullWidth
+              defaultValue={12}
+              value={editedAssignment.reminderLeadTime}
+              onChange={handleEditedReminderLeadTimeChange}
+              SelectProps={{
+                native: true,
+              }}
+              InputLabelProps={{ shrink: true }}
+              label="Reminder Lead Time Before Deadline"
+            >
+              <option value={"12 hours"}>12 hours</option>
+              <option value={"1 day"}>1 day</option>
+              <option value={"1 week"}>1 week</option>
+            </TextField>
+        )}
         </DialogContent>
         <DialogActions>
             <Button onClick={() => setEditingOpen(false)}>Cancel</Button>
@@ -486,54 +697,135 @@ function Course() {
         </DialogActions>
         </Dialog>
 
-        <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{"Add New Assignment"}</DialogTitle>
-        <DialogContent>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+      <DialogTitle>{"Add New Assignment"}</DialogTitle>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="name"
+          label="Assignment Name"
+          type="text"
+          fullWidth
+          value={assignmentName}
+          onChange={handleAssignmentNameChange}
+        />
+        <TextField
+          margin="dense"
+          id="deadline"
+          label="Deadline"
+          type="datetime-local"
+          defaultValue={new Date()}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          fullWidth
+          value={deadline}
+          onChange={handleDeadlineChange}
+        />
+        <TextField
+          margin="dense"
+          id="status"
+          select
+          fullWidth
+          defaultValue={"In Progress"}
+          value={status}
+          onChange={handleStatusChange}
+          SelectProps={{
+            native: true,
+          }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          label = "Status"
+        >
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </TextField>
+
+        <TextField
+          margin="dense"
+          id="reminderFrequency"
+          select
+          fullWidth
+          defaultValue={"1"}
+          value={reminderFrequency}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          onChange={handleReminderFrequencyChange}
+          SelectProps={{
+            native: true,
+          }}
+          label="Reminder Frequency"
+        >
+          <option value={"1"}>1</option>
+          <option value={"2"}>2</option>
+        </TextField>
+        {reminderFrequency == 2 ? (
+          <div>
             <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Assignment Name"
-            type="text"
-            fullWidth
-            value={assignmentName}
-            onChange={handleAssignmentNameChange}
-            />
-            <TextField
-            margin="dense"
-            id="deadline"
-            label="Deadline"
-            type="date"
-            defaultValue={new Date()}
-            InputLabelProps={{
-                shrink: true,
-            }}
-            fullWidth
-            value={deadline}
-            onChange={handleDeadlineChange}
-            />
-            <TextField
-            margin="dense"
-            id="status"
-            select
-            fullWidth
-            defaultValue= {"In Progress"}
-            value={status}
-            onChange={handleStatusChange}
-            SelectProps={{
+              margin="dense"
+              id="reminderLeadTime1"
+              select
+              fullWidth
+              value={reminderLeadTime1}
+              onChange={handleReminderLeadTime1Change}
+              SelectProps={{
                 native: true,
-            }}
+              }}
+              InputLabelProps={{ shrink: true }}
+              label="Reminder Lead Time Before Deadline 1"
             >
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-            
+              <option value={"12 hours"}>12 hours</option>
+              <option value={"1 day"}>1 day</option>
+              <option value={"1 week"}>1 week</option>
             </TextField>
-        </DialogContent>
-        <DialogActions>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => addAssignment()} color="primary">Save</Button>
-        </DialogActions>
-        </Dialog>
+            <TextField
+              margin="dense"
+              id="reminderLeadTime2"
+              select
+              fullWidth
+              value={reminderLeadTime2}
+              onChange={handleReminderLeadTime2Change}
+              SelectProps={{
+                native: true,
+              }}
+              InputLabelProps={{ shrink: true }}
+              label="Reminder Lead Time Before Deadline 2"
+            >
+              <option value={"12 hours"}>12 hours</option>
+              <option value={"1 day"}>1 day</option>
+              <option value={"1 week"}>1 week</option>
+            </TextField>
+          </div>
+        ) : (
+          <TextField
+          margin="dense"
+          id="reminderLeadTime"
+          select
+          fullWidth
+          defaultValue={12}
+          value={reminderLeadTime}
+          onChange={handleReminderLeadTimeChange}
+          SelectProps={{
+            native: true,
+          }}
+          InputLabelProps={{ shrink: true }}
+          label="Reminder Lead Time Before Deadline"
+        >
+              <option value={"12 hours"}>12 hours</option>
+              <option value={"1 day"}>1 day</option>
+              <option value={"1 week"}>1 week</option>
+        </TextField>
+        )}
+      </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpen(false)}>Cancel</Button>
+    <Button onClick={() => addAssignment()} color="primary">Save</Button>
+  </DialogActions>
+</Dialog>
+
         <Dialog
         open={deleteOpen}
         onClose={handleClose}
@@ -735,41 +1027,11 @@ function Course() {
         <Button variant="contained" component="label" startIcon={<UploadIcon />} style={{ float: "right" }} sx={{ ml: 'auto', mr: 2, mt: 2 }} onClick={() => {setResourceOpen(true); setPercent(0); console.log(resources)}}>
           Upload Resource
         </Button>
-
-          {/* <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>File Name</TableCell>
-                  <TableCell>Notes Description</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-              {resources.map((resource) => (
-                <TableRow key={resource.resourceId}>
-                  <TableCell>{resource.fileName}</TableCell>
-                  <TableCell  style={{ wordBreak: "break-word" }}>{note.notesDescription}</TableCell>
-                  <TableCell>  
-                    <IconButton style={{float: "right"}}>
-                      <DeleteIcon />
-                    </IconButton>
-                    <IconButton style={{float: "right"}}>
-                      <VisibilityIcon />
-                    </IconButton>   
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            </Table>
-          </TableContainer> */}
-
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>File Name</TableCell>
-                  {/* <TableCell>Notes Description</TableCell> */}
                   <TableCell></TableCell>
                 </TableRow>
               </TableHead>
@@ -777,18 +1039,16 @@ function Course() {
               {resources.map((resource) => (
                 <TableRow key={resource.resourceId}>
                   <TableCell>{resource.fileName}</TableCell>
-                  {/* <TableCell  style={{ wordBreak: "break-word" }}>{note.notesDescription}</TableCell> */}
-                  {/* <TableCell>  
-                    <IconButton style={{float: "right"}} onClick={()=> {setNotesDeleteOpen(true); setEditedNote(note)}}>
+                  <TableCell>  
+                    <IconButton style={{float: "right"}} onClick={() => {setResourceDeleteOpen(true); setEditedResource(resource);}}>
                       <DeleteIcon />
                     </IconButton>
-                    <IconButton style={{float: "right"}} onClick={()=> {setNotesEditOpen(true); setEditedNote(note)}}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton style={{float: "right"}} onClick={()=> {setNotesViewOpen(true); setEditedNote(note)}}>
-                      <VisibilityIcon />
-                    </IconButton>   
-                  </TableCell> */}
+                    <Link href= {resource.url}>
+                      <IconButton style={{float: "right"}}>
+                        <VisibilityIcon />
+                      </IconButton>   
+                    </Link>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -805,6 +1065,31 @@ function Course() {
             </center>
             <DialogActions>
               <Button onClick={() => setResourceOpen(false)}>Close</Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog
+              open={resourceDeleteOpen}
+              onClose={handleResourceDeleteClose}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              >
+            <DialogTitle id="alert-dialog-title">Delete Note</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Are you sure you want to delete this resource?
+              </DialogContentText>
+              <DialogContentText paddingTop={2}>
+                {editedResource.fileName}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setResourceDeleteOpen(false)} color="primary">
+                No
+              </Button>
+              <Button onClick={() => deleteFile()} color="primary" autoFocus>
+                Yes
+              </Button>
             </DialogActions>
           </Dialog>
         </div>
