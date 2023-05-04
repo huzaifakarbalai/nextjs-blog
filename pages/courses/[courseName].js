@@ -584,7 +584,7 @@ function Course() {
               InputLabelProps={{ shrink: true }}
               label="Reminder Lead Time Before Deadline"
             >
-              <option value={"2 day"}>2 days before</option>
+              <option value={"2 days"}>2 days before</option>
               <option value={"1 week"}>1 week before</option>
             </TextField>
         </DialogContent>
@@ -654,7 +654,7 @@ function Course() {
           InputLabelProps={{ shrink: true }}
           label="Reminder Lead Time Before Deadline"
         >
-              <option value={"2 day"}>2 days before</option>
+              <option value={"2 days"}>2 days before</option>
               <option value={"1 week"}>1 week before</option>
         </TextField>
 
