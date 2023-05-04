@@ -210,7 +210,7 @@ const Dashboard = () => {
       </Drawer>
 
       {/* Page content */}
-      <Box p={2}>
+      <Box p={2} ml={28} >
         {/* Render content based on selected menu option */}
         {selectedOption === 'dashboard' && (
             <Container >
