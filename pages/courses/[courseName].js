@@ -38,7 +38,6 @@ function Course() {
   const [resources, setResources] = useState([]);
   const [editedResource, setEditedResource] = useState({});
   const [resourceDeleteOpen, setResourceDeleteOpen] = useState(false);
-  const [reminderFrequency, setReminderFrequency] = useState(0);
   const [reminderLeadTime, setReminderLeadTime] = useState("");
   const [reminderLeadTime1, setReminderLeadTime1] = useState("");
   const [reminderLeadTime2, setReminderLeadTime2] = useState("");
@@ -50,25 +49,12 @@ function Course() {
   const addAssignment = async () => {
     try {
       var assignmentRef;
-      if(reminderFrequency == 2) {
         assignmentRef = await addDoc(collection(db, 'assignments'), {
           assignmentName: assignmentName,
           deadline: deadline,
           status: status,
-          reminderFrequency: reminderFrequency,
-          reminderLeadTime1: reminderLeadTime1,
-          reminderLeadTime2: reminderLeadTime2
-        });
-      }
-      else {
-        assignmentRef = await addDoc(collection(db, 'assignments'), {
-          assignmentName: assignmentName,
-          deadline: deadline,
-          status: status,
-          reminderFrequency: reminderFrequency,
           reminderLeadTime: reminderLeadTime
         });
-      }
       
 
       // Get the assignment ID
@@ -84,7 +70,6 @@ function Course() {
       setAssignmentName('');
       setDeadline('');
       setStatus(''); 
-      setReminderFrequency('')
       setReminderLeadTime('')
       setReminderLeadTime1('')
       setReminderLeadTime2('')
@@ -116,25 +101,13 @@ function Course() {
   const updateAssignment = async () => {
     try {
       var assignmentRef = doc(db, 'assignments', editedAssignment.assignmentId);
-      if(editedAssignment.reminderFrequency == 2) {
-        await updateDoc(assignmentRef, {
-          assignmentName: editedAssignment.assignmentName,
-          deadline: editedAssignment.deadline,
-          status: editedAssignment.status,
-          reminderFrequency: editedAssignment.reminderFrequency,
-          reminderLeadTime1: editedAssignment.reminderLeadTime1,
-          reminderLeadTime2: editedAssignment.reminderLeadTime2
-        });
     
-      } else {
-        await updateDoc(assignmentRef, {
-          assignmentName: editedAssignment.assignmentName,
-          deadline: editedAssignment.deadline,
-          status: editedAssignment.status,
-          reminderFrequency: editedAssignment.reminderFrequency,
-          reminderLeadTime: editedAssignment.reminderLeadTime
-        });
-      }
+      await updateDoc(assignmentRef, {
+        assignmentName: editedAssignment.assignmentName,
+        deadline: editedAssignment.deadline,
+        status: editedAssignment.status,
+        reminderLeadTime: editedAssignment.reminderLeadTime
+      });
      
       fetchAssignments();
       setEditingOpen(false);
@@ -158,27 +131,13 @@ function Course() {
           if (assignmentDocSnapshot.exists()) {
             const assignmentData = assignmentDocSnapshot.data();
             var assignment;
-            if(assignmentData.reminderFrequency == 2) {
               assignment = {
                 assignmentId: assignmentId,
                 assignmentName: assignmentData.assignmentName,
                 deadline: assignmentData.deadline,
                 status: assignmentData.status,
-                reminderFrequency: assignmentData.reminderFrequency,
-                reminderLeadTime1: assignmentData.reminderLeadTime1,
-                reminderLeadTime2: assignmentData.reminderLeadTime2
-              };
-            }
-            else {
-              assignment = {
-                assignmentId: assignmentId,
-                assignmentName: assignmentData.assignmentName,
-                deadline: assignmentData.deadline,
-                status: assignmentData.status,
-                reminderFrequency: assignmentData.reminderFrequency,
                 reminderLeadTime: assignmentData.reminderLeadTime,
               };
-            }
            
             assignmentsData.push(assignment);
           }
@@ -191,11 +150,6 @@ function Course() {
       console.error('Error fetching assignments:', error);
     }
   };
-
-  const handleReminderFrequencyChange = (e) => {
-    setReminderFrequency(e.target.value);
-  }
-
   
   const handleReminderLeadTimeChange = (e) => {
     setReminderLeadTime(e.target.value);
@@ -208,14 +162,6 @@ function Course() {
   const handleReminderLeadTime2Change = (e) => {
     setReminderLeadTime2(e.target.value);
   }
-
-  const handleEditedReminderFrequencyChange = (e) => {
-    setEditedAssignment({
-      ...editedAssignment,
-      reminderFrequency: e.target.value
-    });
-  }
-
   
   const handleEditedReminderLeadTimeChange = (e) => {
     setEditedAssignment({
@@ -611,8 +557,10 @@ function Course() {
             id="status"
             select
             fullWidth
+            label="Status"
             defaultValue= {"In Progress"}
             value={editedAssignment.status}
+            InputLabelProps={{ shrink: true }}
             onChange={handleEditedStatusChange}
             SelectProps={{
                 native: true,
@@ -620,63 +568,8 @@ function Course() {
             >
             <option value="In Progress">In Progress</option>
             <option value="Completed">Completed</option>
-            
             </TextField>
 
-            <TextField
-              margin="dense"
-              id="reminderFrequency"
-              select
-              fullWidth
-              defaultValue={"1"}
-              value={editedAssignment.reminderFrequency}
-              onChange={handleEditedReminderFrequencyChange}
-              SelectProps={{
-                native: true,
-              }}
-              label="Reminder Frequency"
-            >
-          <option value={"1"}>1</option>
-          <option value={"2"}>2</option>
-            </TextField>
-            {editedAssignment.reminderFrequency == 2 ? (
-              <div>
-                <TextField
-                  margin="dense"
-                  id="reminderLeadTime1"
-                  select
-                  fullWidth
-                  value={editedAssignment.reminderLeadTime1}
-                  onChange={handleEditedReminderLeadTime1Change}
-                  SelectProps={{
-                    native: true,
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  label="Reminder Lead Time Before Deadline 1"
-                >
-              <option value={"12 hours"}>12 hours</option>
-              <option value={"1 day"}>1 day</option>
-              <option value={"1 week"}>1 week</option>
-                </TextField>
-                <TextField
-                  margin="dense"
-                  id="reminderLeadTime2"
-                  select
-                  fullWidth
-                  value={editedAssignment.reminderLeadTime2}
-                  onChange={handleEditedReminderLeadTime2Change}
-                  SelectProps={{
-                    native: true,
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  label="Reminder Lead Time Before Deadline 2"
-                >
-              <option value={"12 hours"}>12 hours</option>
-              <option value={"1 day"}>1 day</option>
-              <option value={"1 week"}>1 week</option>
-                </TextField>
-              </div>
-            ) : (
               <TextField
               margin="dense"
               id="reminderLeadTime"
@@ -691,11 +584,9 @@ function Course() {
               InputLabelProps={{ shrink: true }}
               label="Reminder Lead Time Before Deadline"
             >
-              <option value={"12 hours"}>12 hours</option>
-              <option value={"1 day"}>1 day</option>
-              <option value={"1 week"}>1 week</option>
+              <option value={"2 day"}>2 days before</option>
+              <option value={"1 week"}>1 week before</option>
             </TextField>
-        )}
         </DialogContent>
         <DialogActions>
             <Button onClick={() => setEditingOpen(false)}>Cancel</Button>
@@ -749,63 +640,6 @@ function Course() {
           <option value="Completed">Completed</option>
         </TextField>
 
-        <TextField
-          margin="dense"
-          id="reminderFrequency"
-          select
-          fullWidth
-          defaultValue={"1"}
-          value={reminderFrequency}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          onChange={handleReminderFrequencyChange}
-          SelectProps={{
-            native: true,
-          }}
-          label="Reminder Frequency"
-        >
-          <option value={"1"}>1</option>
-          <option value={"2"}>2</option>
-        </TextField>
-        {reminderFrequency == 2 ? (
-          <div>
-            <TextField
-              margin="dense"
-              id="reminderLeadTime1"
-              select
-              fullWidth
-              value={reminderLeadTime1}
-              onChange={handleReminderLeadTime1Change}
-              SelectProps={{
-                native: true,
-              }}
-              InputLabelProps={{ shrink: true }}
-              label="Reminder Lead Time Before Deadline 1"
-            >
-              <option value={"12 hours"}>12 hours</option>
-              <option value={"1 day"}>1 day</option>
-              <option value={"1 week"}>1 week</option>
-            </TextField>
-            <TextField
-              margin="dense"
-              id="reminderLeadTime2"
-              select
-              fullWidth
-              value={reminderLeadTime2}
-              onChange={handleReminderLeadTime2Change}
-              SelectProps={{
-                native: true,
-              }}
-              InputLabelProps={{ shrink: true }}
-              label="Reminder Lead Time Before Deadline 2"
-            >
-              <option value={"12 hours"}>12 hours</option>
-              <option value={"1 day"}>1 day</option>
-              <option value={"1 week"}>1 week</option>
-            </TextField>
-          </div>
-        ) : (
           <TextField
           margin="dense"
           id="reminderLeadTime"
@@ -820,11 +654,10 @@ function Course() {
           InputLabelProps={{ shrink: true }}
           label="Reminder Lead Time Before Deadline"
         >
-              <option value={"12 hours"}>12 hours</option>
-              <option value={"1 day"}>1 day</option>
-              <option value={"1 week"}>1 week</option>
+              <option value={"2 day"}>2 days before</option>
+              <option value={"1 week"}>1 week before</option>
         </TextField>
-        )}
+
       </DialogContent>
   <DialogActions>
     <Button onClick={() => setOpen(false)}>Cancel</Button>

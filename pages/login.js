@@ -21,8 +21,8 @@ function Copyright(props) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
+      <Link color="inherit" href="/">
+        Self Study
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -46,9 +46,8 @@ export default function SignIn() {
     signInWithEmailAndPassword(auth,email,password)
       .then((userCredential) => {
         router.push('/dashboard')
-        console.log(userCredential)
       }).catch((error) => {
-        console.log(error)
+        alert("Incorrect email or password")
       })
     // console.log({
     //   email: data.get('email'),

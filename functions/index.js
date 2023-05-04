@@ -116,7 +116,9 @@ exports.checkAssignments = functions.pubsub.schedule('every 1 minutes').onRun(as
         // Check if the assignment's deadline minus the reminderLeadTime is equal to the current time
         const deadline = new Date(assignmentData.deadline);
         const reminderLeadTime =  convertReminderLeadTime(assignmentData.reminderLeadTime) || 0;
-        const reminderTime = new Date(deadline.getTime() - reminderLeadTime * 1000);
+        var reminderDate = deadline.getTime() - 1 * 60 *60 * 1000;
+        
+        const reminderTime = new Date(reminderDate - reminderLeadTime * 1000);
         const currentTime = new Date();
 
         reminderTime.setSeconds(0);

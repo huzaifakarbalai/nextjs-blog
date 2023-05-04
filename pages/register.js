@@ -31,8 +31,8 @@ function Copyright(props) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
+      <Link color="inherit" href="/">
+        Self Study
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -63,7 +63,7 @@ export default function SignUp() {
       router.push('/login');
       console.log(userCredential);
     } catch (error) {
-      console.log(error);
+      alert("Error signing up, make sure to fill in all the required fields")
     }
   };
 
