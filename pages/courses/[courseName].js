@@ -521,27 +521,33 @@ function Course() {
   return (
     <Box p={2} >
         <Box textAlign="center">
-        <h1>Course: {course.courseName}</h1>
+        <Typography variant="h4" mb={2} sx={{color:"#09102E"}}> Course: {course.courseName} </Typography>
+        <Typography variant="h6" mb={2} sx={{color:"#09102E"}}> Instructor: {course.courseInstructor} </Typography>
+        <Typography variant="h6" mb={5} sx={{color:"#09102E"}}> Semester: {course.semester} </Typography>
+        {/* <h1>Course: {course.courseName}</h1>
         <p>Instructor: {course.courseInstructor}</p>
-        <p>Semester: {course.semester}</p>
+        <p>Semester: {course.semester}</p> */}
         {/* display the course details */}
         </Box>
 
-      <Tabs
-        value={selectedTab}
-        onChange={handleTabChange}
-        variant="fullWidth"
-        aria-label="Course tabs"
-      >
-        <Tab label="Assignments" />
-        <Tab label="Notes" />
-        <Tab label="Resources" />
-      </Tabs>
+        <Tabs
+          value={selectedTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          aria-label="Course tabs"
+          // sx={{ "& .Mui-selected": { color: "#09102E" } }}
+        >
+          <Tab label="Assignments" sx={{ "&.Mui-selected": { backgroundColor: "#09102E"} }} />
+          <Tab label="Notes" sx={{ "&.Mui-selected": { backgroundColor: "#09102E" } }} />
+          <Tab label="Resources" sx={{ "&.Mui-selected": { backgroundColor: "#09102E" } }} />
+        </Tabs>
+
+
 
       {selectedTab === 0 && (
         // Assignments view
         <div>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} style={{ float: "right" }} sx={{ ml: 'auto', mr: 2, mt: 2 }} onClick={() =>{ setOpen(true)}}>New Assignment</Button>
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} style={{ float: "right" }} sx={{ ml: 'auto', mr: 2, mt: 2, bgcolor: "#09102E"}} onClick={() =>{ setOpen(true)}}>New Assignment</Button>
           
           <TableContainer component={Paper}>
             <Table>
@@ -856,7 +862,7 @@ function Course() {
       {selectedTab === 1 && (
         // Notes view
         <div>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} style={{ float: "right" }} sx={{ ml: 'auto', mr: 2, mt: 2 }} onClick={() => setNotesOpen(true)} >New Notes</Button>
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} style={{ float: "right" }} sx={{ ml: 'auto', mr: 2, mt: 2, bgcolor: "#09102E" }} onClick={() => setNotesOpen(true)} >New Notes</Button>
           
           <TableContainer component={Paper}>
             <Table>
@@ -1024,7 +1030,7 @@ function Course() {
       {selectedTab === 2 && (
         // Resources view
         <div>
-        <Button variant="contained" component="label" startIcon={<UploadIcon />} style={{ float: "right" }} sx={{ ml: 'auto', mr: 2, mt: 2 }} onClick={() => {setResourceOpen(true); setPercent(0); console.log(resources)}}>
+        <Button variant="contained" component="label" startIcon={<UploadIcon />} style={{ float: "right" }} sx={{ ml: 'auto', mr: 2, mt: 2, bgcolor: "#09102E" }} onClick={() => {setResourceOpen(true); setPercent(0); console.log(resources)}}>
           Upload Resource
         </Button>
           <TableContainer component={Paper}>

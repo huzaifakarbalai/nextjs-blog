@@ -12,10 +12,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase'
-import { useRouter } from 'next/router'
-
+import { auth } from '../lib/firebase';
+import { sendPasswordResetEmail } from "firebase/auth";
+import { useRouter } from 'next/router';
 
 function Copyright(props) {
   return (
@@ -36,24 +35,19 @@ export default function SignIn() {
 
   const router = useRouter();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const email = data.get('email')
-    const password = data.get('password')
-    
 
-    signInWithEmailAndPassword(auth,email,password)
-      .then((userCredential) => {
-        router.push('/dashboard')
-        console.log(userCredential)
-      }).catch((error) => {
-        console.log(error)
-      })
-    // console.log({
-    //   email: data.get('email'),
-    //   password: data.get('password'),
-    // });
+    const email = event.target.email.value;
+    console.log(email)
+    sendPasswordResetEmail(auth, email)
+    .then(() => {
+        alert('Password reset email sent successfully!');
+        router.push('/login');
+    })
+    .catch((error) => {
+        alert(error.message);
+    });
   };
 
   return (
@@ -72,7 +66,7 @@ export default function SignIn() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Forgot Password
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
@@ -85,40 +79,14 @@ export default function SignIn() {
               autoComplete="email"
               autoFocus
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Submit
             </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href="/forgotpassword" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
-              <Grid item>
-                <Link href="/register" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
-              </Grid>
-            </Grid>
           </Box>
         </Box>
         <Copyright sx={{ mt: 8, mb: 4 }} />

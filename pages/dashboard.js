@@ -10,6 +10,9 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Course from './courses/[courseName]';
 import Link from 'next/link';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { CalendarPage } from '../lib/calendar';
+
 
 const Dashboard = () => {
   const [selectedOption, setSelectedOption] = useState('dashboard');
@@ -20,6 +23,7 @@ const Dashboard = () => {
   const [semester, setSemester] = useState('');
   const [userCourses, setUserCourses] = useState([]);
   const [open, setOpen] = useState(false); // State to manage the dialog open/
+  const [selectedMenuItem, setSelectedMenuItem] = useState('dashboard');
   
 
   const router = useRouter();
@@ -29,6 +33,11 @@ const Dashboard = () => {
     setOpen(false);
   };
 
+  const handleLogout = ()  => {
+    auth.signOut().then(() => {
+      router.push('/');
+    });
+  }
 
 
   useEffect(() => {
@@ -51,8 +60,9 @@ const Dashboard = () => {
     fetchUserCourses();
 }, [auth.currentUser, db, open]);
 
-
+  
   const handleMenuItemClick = (option) => {
+    setSelectedMenuItem(option);
     setSelectedOption(option);
   };
 
@@ -98,7 +108,8 @@ const Dashboard = () => {
       setCourseName('');
       setCourseInstructor('');
       setSemester('');
-      
+
+      fetchUserCourses()
       handleDialogClose();
     } catch (error) {
       console.error('Error adding course:', error);
@@ -138,44 +149,71 @@ const Dashboard = () => {
   };
 
   return (
-    <Box display="flex">
+    <Box>
       {/* Side bar menu */}
-      <Drawer variant="permanent" anchor="left">
+      <Drawer
+        variant="permanent"
+        anchor="left"
+        style={{ backgroundColor: '#09102E' }}
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            backgroundColor: '#09102E',
+            boxSizing: 'border-box',
+          },
+        }}
+      >
         <Box p={2}>
           {/* User avatar and name */}
           <Box p={1}>
             <Grid container spacing={3} alignItems="center">
               {/* Replace this with your user avatar component */}
               <Grid item>
-                <Box bgcolor="primary.main" width={48} height={48} borderRadius="50%" />
+                <Box bgcolor="#FFFFFF" width={48} height={48} borderRadius="50%" />
               </Grid>
               <Grid item>
-                <Typography variant="subtitle1">{userFullName}</Typography>
+                <Typography variant="subtitle1" sx={{ color: '#FFFFFF' }}>
+                  {userFullName}
+                </Typography>
               </Grid>
             </Grid>
           </Box>
           {/* Menu options */}
           <List>
-            <ListItemButton onClick={() => handleMenuItemClick('dashboard')}>
-              <ListItemIcon>
+            <ListItemButton
+              onClick={() => handleMenuItemClick('dashboard')}
+              selected={selectedMenuItem === 'dashboard'}
+            >
+              <ListItemIcon sx={{ color: '#FFFFFF' }}>
                 <DashboardIcon />
               </ListItemIcon>
-              <ListItemText primary="Dashboard" />
+              <ListItemText primary="Dashboard" sx={{ color: '#FFFFFF' }} />
             </ListItemButton>
-            <ListItemButton onClick={() => handleMenuItemClick('calendar')}>
-              <ListItemIcon>
+            <ListItemButton
+              onClick={() => handleMenuItemClick('calendar')}
+              selected={selectedMenuItem === 'calendar'}
+            >
+              <ListItemIcon sx={{ color: '#FFFFFF' }}>
                 <EventIcon />
               </ListItemIcon>
-              <ListItemText primary="Calendar" />
+              <ListItemText primary="Calendar" sx={{ color: '#FFFFFF' }} />
             </ListItemButton>
           </List>
+          {/* Logout button */}
+          <Box sx={{ position: 'absolute', bottom: '16px', left: '24px' }}>
+            <Button onClick={handleLogout} sx={{ color: '#FFFFFF' }} startIcon={<LogoutIcon />}>
+              Logout
+            </Button>
+          </Box>
         </Box>
       </Drawer>
+
       {/* Page content */}
-      <Box p={2} ml={30}>
+      <Box p={2} ml={30} >
         {/* Render content based on selected menu option */}
         {selectedOption === 'dashboard' && (
-            <Container maxWidth="sm">
+            <Container >
               <Typography variant="h4" align="left" gutterBottom>
                 Courses
               </Typography>
@@ -183,8 +221,8 @@ const Dashboard = () => {
                 variant="contained"
                 color="primary"
                 size="large"
-                // style={{ marginLeft: 'auto', display: 'block' }}
                 onClick={handleDialogOpen}
+                sx={{color:"#FFFFFF", backgroundColor:"#09102E", marginTop: "16px"}}
               >
                 New Course +
               </Button>
@@ -195,18 +233,18 @@ const Dashboard = () => {
                   <Grid item key={course.courseId} xs={12} sm={6} md={4} lg={3}>
                     {/* Set the desired width for different screen sizes */}
                     <Link href={`/courses/${course.courseId}`}>
-                    <Button  style={{ height: '100%', width: '100%' }}>
+                    <Button  style={{ height: '100%', width: '100%' }} >
                       {/* Use Button component to wrap the tile and add onClick event handler */}
-                      <Paper elevation={3} style={{ height: '100%', width: '100%' }}>
+                      <Paper elevation={3} style={{ height: '100%', width: '100%', backgroundColor: "#09102E"}}>
                         {/* Set a fixed width for the Paper component */}
                         <Box height="100%" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
-                          <Typography variant="h6" align="center" gutterBottom style={{ overflowWrap: 'break-word' }}>
+                          <Typography variant="h6" align="center" color={"#FFFFFF"} gutterBottom style={{ overflowWrap: 'break-word' }}>
                             {course.courseName}
                           </Typography>
-                          <Typography variant="subtitle1" align="center" gutterBottom style={{ wordWrap: 'break-word' }}>
+                          <Typography variant="subtitle1" align="center" color={"#FFFFFF"} gutterBottom style={{ wordWrap: 'break-word' }}>
                             {course.courseInstructor}
                           </Typography>
-                          <Typography variant="subtitle2" align="center" gutterBottom style={{ wordWrap: 'break-word' }}>
+                          <Typography variant="subtitle2" align="center" color={"#FFFFFF"} gutterBottom style={{ wordWrap: 'break-word' }}>
                             {/* Use word-wrap property to ensure text content wraps within the tile */}
                             Semester: {course.semester}
                           </Typography>
@@ -220,7 +258,9 @@ const Dashboard = () => {
         </Container>
         )}
         {selectedOption === 'calendar' && (
-          <Typography variant="h4">Calendar Page</Typography>
+          <Box ml={3}>
+            <CalendarPage />
+          </Box>
         )}
       </Box>
       <Dialog open={openDialog} onClose={handleDialogClose}>
